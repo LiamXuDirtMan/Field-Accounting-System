@@ -1,872 +1,1467 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🍓 Stall Sales Tracker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Field Accounting System 📒✨</title>
   <style>
     :root{
       --bg:#fff7fb;
       --card:#ffffff;
-      --ink:#1f2330;
-      --muted:#6b7280;
-      --line:#f0d7e6;
-      --accent:#ff5da2;
-      --accent2:#8b5cf6;
-      --good:#16a34a;
-      --bad:#ef4444;
-      --shadow: 0 10px 30px rgba(0,0,0,.08);
-      --radius: 18px;
+      --ink:#1f1f27;
+      --muted:#6a6a78;
+      --line:#ece7f2;
+      --accent:#ff5fa2;
+      --accent2:#7c5cff;
+      --good:#1aa86f;
+      --bad:#e34a4a;
+      --warn:#f2a100;
+      --shadow: 0 10px 30px rgba(20, 10, 30, .08);
+      --radius:18px;
+      --radius2:14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      font-family:var(--sans);
       color:var(--ink);
       background:
-        radial-gradient(800px 400px at 10% 0%, rgba(255,93,162,.18), transparent 60%),
-        radial-gradient(800px 400px at 90% 10%, rgba(139,92,246,.14), transparent 60%),
+        radial-gradient(1200px 600px at 10% 10%, rgba(255,95,162,.14), transparent 60%),
+        radial-gradient(1000px 500px at 90% 20%, rgba(124,92,255,.14), transparent 55%),
+        radial-gradient(800px 400px at 50% 95%, rgba(26,168,111,.10), transparent 60%),
         var(--bg);
     }
     header{
-      padding:22px 16px 10px;
-      max-width: 1100px;
-      margin: 0 auto;
+      position:sticky; top:0; z-index:5;
+      backdrop-filter: blur(10px);
+      background: rgba(255,247,251,.75);
+      border-bottom:1px solid var(--line);
     }
-    .titleRow{
-      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    .wrap{max-width:980px;margin:0 auto;padding:14px 14px 90px}
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:8px 0 10px;
     }
-    h1{ margin:0; font-size: 22px; letter-spacing:.2px; }
-    .tagline{ margin:8px 0 0; color:var(--muted); font-size: 13px; }
-    main{
-      max-width:1100px;
-      margin: 0 auto;
-      padding: 12px 16px 30px;
-      display:grid;
-      gap:14px;
-      grid-template-columns: 1fr;
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 0;
     }
-    @media (min-width: 980px){
-      main{ grid-template-columns: 420px 1fr; align-items:start; }
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      background: linear-gradient(135deg, rgba(255,95,162,.95), rgba(124,92,255,.95));
+      box-shadow: var(--shadow);
+      display:grid;place-items:center;
+      color:white;font-size:22px;
+      flex:0 0 auto;
+    }
+    .title{display:flex;flex-direction:column;min-width:0}
+    .title b{font-size:15px; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .title span{font-size:12px;color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .tabs{
+      display:flex; gap:10px;
+      padding:0 0 10px;
+    }
+    .tab{
+      flex:1;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.7);
+      border-radius: 999px;
+      padding:10px 12px;
+      font-weight:700;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      box-shadow: 0 6px 16px rgba(20,10,30,.06);
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      border-color: rgba(255,95,162,.45);
+      background: linear-gradient(135deg, rgba(255,95,162,.12), rgba(124,92,255,.10));
+      box-shadow: 0 10px 25px rgba(255,95,162,.10);
+    }
+    .pill{
+      font-size:12px;
+      padding:4px 8px;
+      border-radius:999px;
+      background: rgba(124,92,255,.12);
+      color: #3f2bb6;
+      border:1px solid rgba(124,92,255,.20);
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .row{display:grid;gap:14px}
+    @media (min-width:920px){
+      .row.two{grid-template-columns: 1.05fr .95fr;}
+      .row.three{grid-template-columns: 1.1fr .9fr .9fr;}
     }
     .card{
-      background:var(--card);
+      background: rgba(255,255,255,.86);
       border:1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 14px;
+      padding:14px;
     }
-    .card h2{ margin: 0 0 10px; font-size: 16px; }
-    .row{ display:flex; gap:10px; flex-wrap:wrap; }
-    .field{
-      display:flex; flex-direction:column; gap:6px;
-      flex: 1 1 140px;
-      min-width: 140px;
+    .card h2{
+      margin:0 0 10px;
+      font-size:15px;
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
     }
-    label{ font-size: 12px; color: var(--muted); }
-    input, select{
-      padding: 10px 12px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
+    .sub{color:var(--muted);font-size:12px;margin-top:-6px;margin-bottom:10px}
+    .grid{display:grid;gap:10px}
+    .grid.cols2{grid-template-columns: 1fr 1fr}
+    .grid.cols3{grid-template-columns: 1fr 1fr 1fr}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+    input, select, textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.95);
       outline:none;
-      font-size: 14px;
-      background:#fff;
+      font-size:14px;
     }
-    input:focus, select:focus{ border-color: rgba(255,93,162,.6); box-shadow: 0 0 0 4px rgba(255,93,162,.12); }
-    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    textarea{min-height:84px;resize:vertical}
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(255,95,162,.55);
+      box-shadow: 0 0 0 4px rgba(255,95,162,.12);
+    }
+    .btnrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
     button{
-      border:0;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-weight: 700;
+      border:none;
+      padding:10px 12px;
+      border-radius: 14px;
+      font-weight:800;
       cursor:pointer;
-      transition: transform .04s ease, filter .15s ease;
-      display:inline-flex; align-items:center; gap:8px;
-    }
-    button:active{ transform: translateY(1px); }
-    .btnAccent{
-      background: linear-gradient(135deg, var(--accent), #ff83bc);
+      background: #1f1f27;
       color:white;
+      box-shadow: 0 10px 20px rgba(20,10,30,.10);
     }
-    .btnSoft{
-      background: #fff1f7;
-      color: #b4236c;
-      border: 1px solid rgba(255,93,162,.25);
+    button.ghost{
+      background: rgba(255,255,255,.92);
+      color: var(--ink);
+      border:1px solid var(--line);
+      box-shadow: 0 8px 18px rgba(20,10,30,.06);
     }
-    .btnGhost{
-      background: #f7f2ff;
-      color: #5b21b6;
-      border: 1px solid rgba(139,92,246,.25);
+    button.pink{
+      background: linear-gradient(135deg, var(--accent), #ff84b8);
     }
-    .btnDanger{
-      background:#fff1f1;
-      color:#991b1b;
-      border:1px solid rgba(239,68,68,.25);
+    button.violet{
+      background: linear-gradient(135deg, var(--accent2), #9a87ff);
     }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border:1px dashed rgba(255,93,162,.35);
-      background: rgba(255,93,162,.07);
-      color: #a31255;
-      font-size: 12px;
-      font-weight:700;
+    button.good{
+      background: linear-gradient(135deg, var(--good), #3ad79e);
     }
-    .totals{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      margin-top: 10px;
+    button.bad{
+      background: linear-gradient(135deg, var(--bad), #ff7b7b);
     }
-    @media (min-width: 520px){
-      .totals{ grid-template-columns: repeat(3, 1fr); }
-    }
+    button:active{transform: translateY(1px)}
+    .muted{color:var(--muted)}
+    .mono{font-family:var(--mono)}
+    .small{font-size:12px}
     .kpi{
-      border:1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      background: linear-gradient(180deg, rgba(255,93,162,.05), transparent 65%);
+      display:grid; gap:10px;
     }
-    .kpi .kTitle{ font-size:12px; color:var(--muted); margin:0 0 6px; }
-    .kpi .kVal{ font-size:18px; margin:0; font-weight:900; letter-spacing:.2px;}
-    .kpi .kSub{ margin:6px 0 0; font-size:12px; color:var(--muted); }
-    .kpi.good .kVal{ color: var(--good); }
-    .kpi.bad .kVal{ color: var(--bad); }
-
-    .list{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+    @media (min-width:560px){
+      .kpi{grid-template-columns: 1fr 1fr}
+    }
+    .kpi .box{
+      border:1px solid var(--line);
+      border-radius: var(--radius2);
+      padding:12px;
+      background: rgba(255,255,255,.88);
+    }
+    .kpi .box .t{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
+    .kpi .box .v{font-size:20px;font-weight:900;margin-top:4px}
+    .kpi .box .v.good{color:var(--good)}
+    .kpi .box .v.bad{color:var(--bad)}
+    .list{
+      display:grid; gap:10px; margin-top:10px;
+    }
     .item{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
       border:1px solid var(--line);
-      border-radius: 14px;
-      padding: 10px 12px;
-      background: #fff;
+      background: rgba(255,255,255,.92);
+      border-radius: var(--radius2);
+      padding:12px;
+      display:grid;
+      gap:10px;
     }
-    .itemLeft{
-      min-width: 0;
-      display:flex;
-      flex-direction:column;
-      gap:3px;
+    .itemTop{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
     }
     .itemName{
-      font-weight: 900;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow: ellipsis;
+      display:flex;flex-direction:column;gap:3px;min-width:0;
     }
-    .itemMeta{
-      font-size: 12px;
-      color: var(--muted);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow: ellipsis;
+    .itemName b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chips{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{
+      font-size:11px;
+      padding:3px 7px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(124,92,255,.08);
+      color:#3f2bb6;
+      font-weight:800;
     }
-    .qtyBox{
-      display:flex; align-items:center; gap:8px; flex-shrink:0;
-      background:#fff7fb;
-      border:1px solid rgba(255,93,162,.18);
-      padding: 6px 8px;
-      border-radius: 999px;
+    .chip.consigned{
+      background: rgba(242,161,0,.10);
+      color:#8a5a00;
+      border-color: rgba(242,161,0,.20);
     }
-    .miniBtn{
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      display:grid;
-      place-items:center;
-      font-weight: 900;
-      padding:0;
-      background:#fff;
-      border:1px solid rgba(0,0,0,.06);
+    .chip.owned{
+      background: rgba(26,168,111,.10);
+      color:#0b6f49;
+      border-color: rgba(26,168,111,.20);
     }
-    .miniBtn.plus{ background: rgba(22,163,74,.12); color: #166534; border:1px solid rgba(22,163,74,.22);}
-    .miniBtn.minus{ background: rgba(239,68,68,.10); color: #7f1d1d; border:1px solid rgba(239,68,68,.20);}
-    .qty{ min-width: 30px; text-align:center; font-weight: 900; }
-    .rightActions{ display:flex; gap:8px; align-items:center; flex-shrink:0; }
-    .tiny{ font-size: 12px; color: var(--muted); }
-    .divider{
-      height:1px;
-      background: linear-gradient(90deg, transparent, rgba(255,93,162,.25), transparent);
-      margin: 12px 0;
+    .controls{
+      display:flex;flex-wrap:wrap;align-items:center;gap:8px;
     }
-    .empty{
-      padding: 14px;
-      border: 1px dashed rgba(107,114,128,.35);
-      border-radius: 14px;
-      color: var(--muted);
-      background: rgba(255,255,255,.6);
+    .qty{
+      width:86px;
       text-align:center;
-      font-size: 13px;
+      font-weight:900;
     }
-    .footerNote{
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--muted);
-      display:flex; gap:8px; align-items:flex-start;
+    .iconBtn{
+      width:40px;height:40px;border-radius: 14px;
+      padding:0;
+      display:grid;place-items:center;
+      font-size:18px;
     }
-    .toast{
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      background: rgba(31,35,48,.92);
-      color:white;
-      padding: 10px 12px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 13px;
-      display:none;
-      max-width: 92vw;
+    .dangerLink{
+      color: var(--bad);
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
     }
+    .hint{
+      background: linear-gradient(135deg, rgba(255,95,162,.10), rgba(124,92,255,.08));
+      border:1px dashed rgba(255,95,162,.35);
+      border-radius: var(--radius2);
+      padding:10px 12px;
+      font-size:12px;
+      color: #3b2a38;
+    }
+    .footerbar{
+      position:fixed; left:0; right:0; bottom:0; z-index:6;
+      background: rgba(255,255,255,.70);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+    .footerbar .wrap{
+      padding:10px 14px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+    }
+    .status{
+      font-size:12px;color:var(--muted);
+      display:flex;align-items:center;gap:8px;
+      min-width:0;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .divider{height:1px;background:var(--line);margin:12px 0}
+    .right{text-align:right}
+    .flex{display:flex;gap:10px;align-items:center}
+    .grow{flex:1}
+    .hide{display:none !important}
   </style>
 </head>
+
 <body>
-  <header>
-    <div class="titleRow">
-      <div>
-        <h1>🍓 Stall Sales Tracker</h1>
-        <p class="tagline">Catalog + sales tracker + instant profit. Works offline & saves automatically ✨</p>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">🧾</div>
+        <div class="title">
+          <b>Field Accounting System</b>
+          <span>2 tabs • offline saving • export sheets ✨</span>
+        </div>
       </div>
-      <div class="pill">📌 Simple • 🧾 Exportable • 🔒 Local save</div>
+      <span class="pill" id="todayPill">📅</span>
     </div>
-  </header>
 
-  <main>
-    <!-- LEFT: Catalog -->
-    <section class="card" aria-label="Catalog">
-      <h2>🧺 Catalog (your items)</h2>
-      <div class="row">
-        <div class="field" style="flex: 1 1 100%">
-          <label for="itemName">Item name</label>
-          <input id="itemName" placeholder="e.g., Strawberry Jam 🍓" maxlength="60" />
+    <div class="tabs">
+      <div class="tab active" id="tabSales" role="button" aria-label="Sales Tracker tab">🛍️ Sales Tracker <span class="pill">Catalog + Sold</span></div>
+      <div class="tab" id="tabCash" role="button" aria-label="Cash Flow tab">💸 Cash Flow <span class="pill">Expenses + Taxes</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- SALES TAB -->
+  <section id="salesSection">
+
+    <div class="row two">
+      <div class="card">
+        <h2>🧸 Item Catalog <span class="pill">import / export</span></h2>
+        <div class="sub">Add your items here. Everything saves automatically on your device.</div>
+
+        <div class="hint">
+          <b>Consigned items:</b> you track <b>original cost</b> + <b>markup</b>.
+          For profits, only <b>markup</b> counts (your earnings). For cash-in, the full selling price counts.
         </div>
-        <div class="field">
-          <label for="itemPrice">Selling price</label>
-          <input id="itemPrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g., 120" />
+
+        <div class="divider"></div>
+
+        <div class="grid cols2">
+          <div>
+            <label>Item name</label>
+            <input id="c_name" placeholder="e.g., Scrunchie 🎀" />
+          </div>
+          <div>
+            <label>Type</label>
+            <select id="c_type">
+              <option value="owned">Owned (regular)</option>
+              <option value="consigned">Consigned</option>
+            </select>
+          </div>
         </div>
-        <div class="field">
-          <label for="itemCost">Cost (your expense)</label>
-          <input id="itemCost" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g., 70" />
+
+        <div class="grid cols2" id="ownedFields">
+          <div>
+            <label>Cost (₱)</label>
+            <input id="c_cost" inputmode="decimal" placeholder="e.g., 25" />
+          </div>
+          <div>
+            <label>Selling price (₱)</label>
+            <input id="c_price" inputmode="decimal" placeholder="e.g., 60" />
+          </div>
         </div>
+
+        <div class="grid cols2 hide" id="consignedFields">
+          <div>
+            <label>Original cost (₱)</label>
+            <input id="c_orig" inputmode="decimal" placeholder="e.g., 50" />
+          </div>
+          <div>
+            <label>Markup (₱)</label>
+            <input id="c_markup" inputmode="decimal" placeholder="e.g., 20" />
+          </div>
+        </div>
+
+        <div class="btnrow">
+          <button class="pink" id="btnAddItem">➕ Add to catalog</button>
+          <button class="ghost" id="btnExportCatalog">⬇️ Export catalog JSON</button>
+          <button class="ghost" id="btnImportCatalog">⬆️ Import catalog JSON</button>
+          <input type="file" id="catalogFile" accept="application/json" class="hide" />
+          <button class="bad" id="btnClearSold" title="Clears sold quantities only">🧼 Clear sold counts</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="flex">
+          <div class="grow">
+            <label>Search</label>
+            <input id="searchBox" placeholder="Search items… (name contains)" />
+          </div>
+          <div style="width:160px">
+            <label>Sort</label>
+            <select id="sortBox">
+              <option value="name">Name (A–Z)</option>
+              <option value="type">Type (Owned/Consigned)</option>
+              <option value="profit">Profit per unit (high→low)</option>
+              <option value="sales">Price per unit (high→low)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="list" id="catalogList"></div>
       </div>
 
-      <div class="btnRow">
-        <button class="btnAccent" id="addItemBtn">➕ Add to catalog</button>
-        <button class="btnSoft" id="clearInputsBtn">🧼 Clear</button>
-      </div>
+      <div class="card">
+        <h2>📊 Sales Summary <span class="pill">auto-calc</span></h2>
+        <div class="sub">As you tap +/− or type qty, totals update instantly.</div>
 
-      <div class="divider"></div>
-
-      <div class="row" style="align-items:center; justify-content:space-between">
-        <div class="tiny">📦 Items in catalog: <b id="catalogCount">0</b></div>
-        <div class="btnRow" style="margin:0">
-          <button class="btnGhost" id="exportBackupBtn" title="Export your data to a backup file">📤 Backup</button>
-          <button class="btnSoft" id="importBtn" title="Import data from a backup file">📥 Import</button>
-          <input id="importFile" type="file" accept="application/json" style="display:none" />
-        </div>
-      </div>
-
-      <div class="list" id="catalogList"></div>
-
-      <div class="footerNote">
-        <span>💡</span>
-        <div>Tip: Add emojis to item names for quick scanning (ex: “Milk Tea 🧋”). Everything saves in this browser.</div>
-      </div>
-    </section>
-
-    <!-- RIGHT: Sales tracker -->
-    <section class="card" aria-label="Sales">
-      <div class="row" style="align-items:center; justify-content:space-between">
-        <h2 style="margin:0">🧾 Sales tracker</h2>
-        <div class="btnRow" style="margin:0">
-          <button class="btnSoft" id="resetSalesBtn">🔁 Reset quantities</button>
-          <button class="btnDanger" id="wipeAllBtn" title="Deletes catalog + sales from this device">🗑️ Wipe all</button>
-        </div>
-      </div>
-
-      <div class="row" style="align-items:flex-end; margin-top:10px;">
-        <div class="field" style="flex: 1 1 220px; min-width: 200px;">
-          <label for="saleDate">📅 Date (for export)</label>
-          <input id="saleDate" type="date" />
-        </div>
-        <div class="field" style="flex: 1 1 220px; min-width: 200px;">
-          <label for="currency">Currency symbol</label>
-          <select id="currency">
-            <option value="₱">₱ (PHP)</option>
-            <option value="$">$ (USD)</option>
-            <option value="€">€ (EUR)</option>
-            <option value="£">£ (GBP)</option>
-            <option value="¥">¥ (JPY)</option>
-            <option value="">(none)</option>
-          </select>
-        </div>
-        <div class="field" style="flex: 1 1 260px; min-width: 240px;">
-          <label>&nbsp;</label>
-          <button class="btnAccent" id="exportLiamBtn" title="Exports a CSV sheet for sending">📤 Export sheet — For Sending to Liam</button>
-        </div>
-      </div>
-
-      <div class="totals">
         <div class="kpi">
-          <p class="kTitle">💰 Sales (revenue)</p>
-          <p class="kVal" id="totalSales">0.00</p>
-          <p class="kSub">Total selling price × qty</p>
+          <div class="box">
+            <div class="t">💵 Gross Cash-In (from sales)</div>
+            <div class="v mono" id="k_gross">₱0.00</div>
+          </div>
+          <div class="box">
+            <div class="t">✨ Profit (Sales − Cost; consigned = markup)</div>
+            <div class="v mono good" id="k_profit">₱0.00</div>
+          </div>
+          <div class="box">
+            <div class="t">📦 Regular Items Cost (COGS)</div>
+            <div class="v mono" id="k_cost">₱0.00</div>
+          </div>
+          <div class="box">
+            <div class="t">🤝 Consignor Payable (orig × qty)</div>
+            <div class="v mono" id="k_payable">₱0.00</div>
+          </div>
         </div>
+
+        <div class="divider"></div>
+
+        <div class="grid cols2">
+          <div>
+            <label>Date (for export)</label>
+            <input id="salesDate" type="date" />
+          </div>
+          <div>
+            <label>Notes</label>
+            <input id="salesNotes" placeholder="e.g., Stall @ bazaar ✨" />
+          </div>
+        </div>
+
+        <div class="btnrow">
+          <button class="violet" id="btnExportSalesCsv">🧾 Export Sales Sheet (CSV)</button>
+          <button class="ghost" id="btnExportSalesJson">💾 Export Sales Data (JSON)</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="hint">
+          <b>Tip:</b> Export CSV then open in Google Sheets / Excel. On mobile, it should download like a normal file.
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- CASH TAB -->
+  <section id="cashSection" class="hide">
+
+    <div class="row two">
+      <div class="card">
+        <h2>🧋 Cash-In & Expenses <span class="pill">editable</span></h2>
+        <div class="sub">Cash-in auto-reads from sales. Add any expenses you want.</div>
+
         <div class="kpi">
-          <p class="kTitle">🧴 Cost (expenses)</p>
-          <p class="kVal" id="totalCost">0.00</p>
-          <p class="kSub">Total cost × qty</p>
+          <div class="box">
+            <div class="t">💵 Cash In (Gross Sales)</div>
+            <div class="v mono" id="cf_in">₱0.00</div>
+          </div>
+          <div class="box">
+            <div class="t">🧾 Total Expenses</div>
+            <div class="v mono bad" id="cf_exp">₱0.00</div>
+          </div>
         </div>
-        <div class="kpi good" id="profitKPI">
-          <p class="kTitle">✨ Profit</p>
-          <p class="kVal" id="totalProfit">0.00</p>
-          <p class="kSub">Sales − Cost</p>
+
+        <div class="divider"></div>
+
+        <div class="grid cols2">
+          <div>
+            <label>Expense label</label>
+            <input id="e_label" placeholder="e.g., Booth fee / Packaging / Snacks 🍟" />
+          </div>
+          <div>
+            <label>Amount (₱)</label>
+            <input id="e_amount" inputmode="decimal" placeholder="e.g., 120" />
+          </div>
         </div>
+
+        <div class="btnrow">
+          <button class="pink" id="btnAddExpense">➕ Add expense</button>
+          <button class="bad" id="btnClearExpenses">🗑️ Clear expenses</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="list" id="expenseList"></div>
       </div>
 
-      <div class="divider"></div>
+      <div class="card">
+        <h2>🧮 Cash Flow Summary <span class="pill">tax + tithe</span></h2>
+        <div class="sub">After expenses: take 10% as Taxes, then 10% of the remainder as Tithe.</div>
 
-      <div class="row" style="align-items:center">
-        <div class="field" style="flex: 1 1 280px">
-          <label for="searchBox">Search items</label>
-          <input id="searchBox" placeholder="Type to search... 🔎" />
+        <div class="grid cols2">
+          <div>
+            <label>Date (for export)</label>
+            <input id="cashDate" type="date" />
+          </div>
+          <div>
+            <label>Notes</label>
+            <input id="cashNotes" placeholder="e.g., Day 1 sales + supplies ✨" />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="kpi">
+          <div class="box">
+            <div class="t">🧾 Net Before Taxes (Cash In − Expenses)</div>
+            <div class="v mono" id="cf_net">₱0.00</div>
+          </div>
+          <div class="box">
+            <div class="t">🏛️ Taxes (10% of Net Before Taxes)</div>
+            <div class="v mono" id="cf_tax">₱0.00</div>
+          </div>
+          <div class="box">
+            <div class="t">⛪ Tithe (10% of After-Tax)</div>
+            <div class="v mono" id="cf_tithe">₱0.00</div>
+          </div>
+          <div class="box">
+            <div class="t">💖 Ending Cash Balance</div>
+            <div class="v mono good" id="cf_end">₱0.00</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="btnrow">
+          <button class="violet" id="btnExportCashCsv">📤 Export Cash Flow Sheet (CSV)</button>
+          <button class="ghost" id="btnExportCashJson">💾 Export Cash Data (JSON)</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="hint">
+          If Net Before Taxes is negative, this app sets Taxes and Tithe to <b>₱0</b> (so you don’t “tax” a loss).
         </div>
       </div>
+    </div>
 
-      <div class="list" id="salesList"></div>
+  </section>
 
-      <div class="footerNote">
-        <span>🧠</span>
-        <div><b>How it works:</b> Tap ➕ to record sales, tap ➖ to undo. Totals update instantly.</div>
-      </div>
-    </section>
-  </main>
+</main>
 
-  <div class="toast" id="toast"></div>
+<div class="footerbar">
+  <div class="wrap">
+    <div class="status" id="statusText">✨ Saved locally on this device</div>
+    <div class="flex">
+      <button class="ghost" id="btnBackupAll">🧷 Backup ALL (JSON)</button>
+      <button class="ghost" id="btnRestoreAll">🧷 Restore ALL (JSON)</button>
+      <input type="file" id="allFile" accept="application/json" class="hide" />
+    </div>
+  </div>
+</div>
 
 <script>
-(() => {
-  const LS_KEY = "stall_selling_tracker_v2";
+/* =========================================================
+   Field Accounting System (single-file, offline-first)
+   - Catalog supports Owned and Consigned items
+   - Sold quantities tracked
+   - Cashflow: expenses + 10% tax + 10% tithe
+   - Export CSV "sheets" + JSON backups
+   ========================================================= */
 
-  const $ = (id) => document.getElementById(id);
+const LS_KEY = "fieldAccountingSystem_v1";
+const fmtMoney = (n) => {
+  const x = Number.isFinite(n) ? n : 0;
+  return "₱" + x.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+};
+const toNum = (v) => {
+  if (v === null || v === undefined) return 0;
+  const s = String(v).replace(/,/g,"").trim();
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+};
+const uid = () => Math.random().toString(36).slice(2,10) + "-" + Date.now().toString(36);
 
-  const ui = {
-    itemName: $("itemName"),
-    itemPrice: $("itemPrice"),
-    itemCost: $("itemCost"),
-    addItemBtn: $("addItemBtn"),
-    clearInputsBtn: $("clearInputsBtn"),
-    catalogList: $("catalogList"),
-    catalogCount: $("catalogCount"),
+const stateDefault = () => ({
+  catalog: [
+    // sample cute defaults (can be deleted)
+    { id: uid(), name: "Scrunchie 🎀", type:"owned", cost: 25, price: 60, soldQty: 0 },
+    { id: uid(), name: "Beaded Keychain ✨", type:"owned", cost: 40, price: 99, soldQty: 0 },
+    { id: uid(), name: "Consigned Dress 👗", type:"consigned", original: 350, markup: 150, soldQty: 0 }
+  ],
+  salesMeta: {
+    date: "",
+    notes: ""
+  },
+  cash: {
+    expenses: [],
+    meta: { date:"", notes:"" }
+  },
+  ui: { activeTab: "sales" }
+});
 
-    salesList: $("salesList"),
-    totalSales: $("totalSales"),
-    totalCost: $("totalCost"),
-    totalProfit: $("totalProfit"),
-    profitKPI: $("profitKPI"),
+let state = loadState();
 
-    resetSalesBtn: $("resetSalesBtn"),
-    wipeAllBtn: $("wipeAllBtn"),
+/* ---------- DOM ---------- */
+const el = (id)=>document.getElementById(id);
 
-    searchBox: $("searchBox"),
-    currency: $("currency"),
+const tabSales = el("tabSales");
+const tabCash  = el("tabCash");
+const salesSection = el("salesSection");
+const cashSection  = el("cashSection");
 
-    saleDate: $("saleDate"),
-    exportLiamBtn: $("exportLiamBtn"),
+const todayPill = el("todayPill");
+todayPill.textContent = "📅 " + new Date().toLocaleDateString(undefined, { year:"numeric", month:"short", day:"2-digit" });
 
-    exportBackupBtn: $("exportBackupBtn"),
-    importBtn: $("importBtn"),
-    importFile: $("importFile"),
+/* Catalog inputs */
+const c_name   = el("c_name");
+const c_type   = el("c_type");
+const c_cost   = el("c_cost");
+const c_price  = el("c_price");
+const c_orig   = el("c_orig");
+const c_markup = el("c_markup");
 
-    toast: $("toast"),
-  };
+const ownedFields = el("ownedFields");
+const consignedFields = el("consignedFields");
 
-  const state = {
-    items: [], // {id, name, price, cost}
-    sold: {},  // {id: qty}
-    currency: "₱",
-    search: "",
-    saleDate: "" // YYYY-MM-DD
-  };
+const btnAddItem = el("btnAddItem");
+const btnExportCatalog = el("btnExportCatalog");
+const btnImportCatalog = el("btnImportCatalog");
+const catalogFile = el("catalogFile");
+const btnClearSold = el("btnClearSold");
 
-  const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+const searchBox = el("searchBox");
+const sortBox = el("sortBox");
+const catalogList = el("catalogList");
 
-  function showToast(msg){
-    ui.toast.textContent = msg;
-    ui.toast.style.display = "block";
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => ui.toast.style.display = "none", 1800);
+/* Sales KPIs */
+const k_gross = el("k_gross");
+const k_profit = el("k_profit");
+const k_cost = el("k_cost");
+const k_payable = el("k_payable");
+
+const salesDate = el("salesDate");
+const salesNotes = el("salesNotes");
+const btnExportSalesCsv = el("btnExportSalesCsv");
+const btnExportSalesJson = el("btnExportSalesJson");
+
+/* Cashflow */
+const cf_in = el("cf_in");
+const cf_exp = el("cf_exp");
+const e_label = el("e_label");
+const e_amount = el("e_amount");
+const btnAddExpense = el("btnAddExpense");
+const btnClearExpenses = el("btnClearExpenses");
+const expenseList = el("expenseList");
+
+const cashDate = el("cashDate");
+const cashNotes = el("cashNotes");
+
+const cf_net = el("cf_net");
+const cf_tax = el("cf_tax");
+const cf_tithe = el("cf_tithe");
+const cf_end = el("cf_end");
+
+const btnExportCashCsv = el("btnExportCashCsv");
+const btnExportCashJson = el("btnExportCashJson");
+
+/* Footer backup */
+const statusText = el("statusText");
+const btnBackupAll = el("btnBackupAll");
+const btnRestoreAll = el("btnRestoreAll");
+const allFile = el("allFile");
+
+/* ---------- Tabs ---------- */
+function setTab(which){
+  state.ui.activeTab = which;
+  if(which === "sales"){
+    tabSales.classList.add("active");
+    tabCash.classList.remove("active");
+    salesSection.classList.remove("hide");
+    cashSection.classList.add("hide");
+  }else{
+    tabCash.classList.add("active");
+    tabSales.classList.remove("active");
+    cashSection.classList.remove("hide");
+    salesSection.classList.add("hide");
   }
+  saveState();
+}
+tabSales.addEventListener("click", ()=>setTab("sales"));
+tabCash.addEventListener("click", ()=>setTab("cash"));
 
-  function fmtMoney(n){
-    const sym = state.currency ?? "";
-    const num = Number(n || 0);
-    return `${sym}${num.toFixed(2)}`;
+/* ---------- Type toggle for catalog form ---------- */
+function refreshCatalogFormMode(){
+  const t = c_type.value;
+  if(t === "consigned"){
+    ownedFields.classList.add("hide");
+    consignedFields.classList.remove("hide");
+  }else{
+    consignedFields.classList.add("hide");
+    ownedFields.classList.remove("hide");
   }
+}
+c_type.addEventListener("change", refreshCatalogFormMode);
 
-  function load(){
-    try{
-      const raw = localStorage.getItem(LS_KEY);
-      if(!raw) return;
-      const data = JSON.parse(raw);
-      if(data && typeof data === "object"){
-        state.items = Array.isArray(data.items) ? data.items : [];
-        state.sold = (data.sold && typeof data.sold === "object") ? data.sold : {};
-        state.currency = typeof data.currency === "string" ? data.currency : "₱";
-        state.saleDate = typeof data.saleDate === "string" ? data.saleDate : "";
-      }
-    }catch(e){
-      console.warn("Load failed", e);
-    }
-  }
+/* ---------- Load meta fields ---------- */
+function hydrateMeta(){
+  salesDate.value = state.salesMeta.date || "";
+  salesNotes.value = state.salesMeta.notes || "";
+  cashDate.value = state.cash.meta.date || "";
+  cashNotes.value = state.cash.meta.notes || "";
+}
 
-  function save(){
-    localStorage.setItem(LS_KEY, JSON.stringify({
-      items: state.items,
-      sold: state.sold,
-      currency: state.currency,
-      saleDate: state.saleDate
-    }));
-  }
+/* ---------- State persistence ---------- */
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return stateDefault();
+    const s = JSON.parse(raw);
 
-  function sanitizeMoneyInput(v){
-    const n = Number(v);
-    return Number.isFinite(n) ? Math.max(0, n) : 0;
-  }
-
-  function addItem(){
-    const name = ui.itemName.value.trim();
-    const price = sanitizeMoneyInput(ui.itemPrice.value);
-    const cost  = sanitizeMoneyInput(ui.itemCost.value);
-
-    if(!name){
-      showToast("Please type an item name 💖");
-      ui.itemName.focus();
-      return;
-    }
-    if(price <= 0){
-      showToast("Selling price must be > 0 💸");
-      ui.itemPrice.focus();
-      return;
-    }
-    if(cost > price){
-      showToast("Cost is higher than price 😳 (still saved)");
-    }
-
-    const item = { id: uid(), name, price, cost };
-    state.items.unshift(item);
-    if(state.sold[item.id] == null) state.sold[item.id] = 0;
-
-    save();
-    render();
-    clearInputs(true);
-    showToast("Added to catalog ✨");
-  }
-
-  function clearInputs(keepNameFocus=false){
-    ui.itemName.value = "";
-    ui.itemPrice.value = "";
-    ui.itemCost.value = "";
-    if(keepNameFocus) ui.itemName.focus();
-  }
-
-  function removeItem(id){
-    const item = state.items.find(x => x.id === id);
-    if(!item) return;
-    if(!confirm(`Remove "${item.name}" from catalog? This also clears its quantities.`)) return;
-    state.items = state.items.filter(x => x.id !== id);
-    delete state.sold[id];
-    save();
-    render();
-    showToast("Removed 🧺");
-  }
-
-  function editItem(id){
-    const item = state.items.find(x => x.id === id);
-    if(!item) return;
-
-    const newName = prompt("Edit item name ✏️", item.name);
-    if(newName === null) return;
-    const name = newName.trim();
-    if(!name){ showToast("Name can't be empty 🥲"); return; }
-
-    const newPrice = prompt("Edit selling price 💸", String(item.price));
-    if(newPrice === null) return;
-    const price = sanitizeMoneyInput(newPrice);
-    if(price <= 0){ showToast("Price must be > 0 😅"); return; }
-
-    const newCost = prompt("Edit cost 🧴", String(item.cost));
-    if(newCost === null) return;
-    const cost = sanitizeMoneyInput(newCost);
-
-    item.name = name;
-    item.price = price;
-    item.cost = cost;
-
-    save();
-    render();
-    showToast("Updated ✨");
-  }
-
-  function setQty(id, qty){
-    const q = Math.max(0, Math.floor(qty));
-    state.sold[id] = q;
-    save();
-    renderTotals();
-    renderLists();
-  }
-  function incQty(id){ setQty(id, (state.sold[id] || 0) + 1); }
-  function decQty(id){ setQty(id, (state.sold[id] || 0) - 1); }
-
-  function resetSales(){
-    if(!confirm("Reset all quantities sold to 0? 🔁")) return;
-    for(const it of state.items){
-      state.sold[it.id] = 0;
-    }
-    save();
-    render();
-    showToast("Quantities reset ✨");
-  }
-
-  function wipeAll(){
-    if(!confirm("This will delete your catalog + sales from this device. Proceed? 🗑️")) return;
-    localStorage.removeItem(LS_KEY);
-    state.items = [];
-    state.sold = {};
-    state.currency = "₱";
-    state.search = "";
-    state.saleDate = "";
-    ui.searchBox.value = "";
-    ui.currency.value = "₱";
-    ui.saleDate.value = "";
-    render();
-    showToast("All cleared 🧼");
-  }
-
-  function computeTotals(){
-    let sales = 0, cost = 0;
-    for(const it of state.items){
-      const qty = Number(state.sold[it.id] || 0);
-      sales += it.price * qty;
-      cost  += it.cost  * qty;
-    }
-    const profit = sales - cost;
-    return { sales, cost, profit };
-  }
-
-  function renderTotals(){
-    const { sales, cost, profit } = computeTotals();
-    ui.totalSales.textContent = fmtMoney(sales);
-    ui.totalCost.textContent  = fmtMoney(cost);
-    ui.totalProfit.textContent= fmtMoney(profit);
-
-    ui.profitKPI.classList.remove("good","bad");
-    ui.profitKPI.classList.add(profit >= 0 ? "good" : "bad");
-  }
-
-  function renderCatalog(){
-    ui.catalogCount.textContent = String(state.items.length);
-
-    if(state.items.length === 0){
-      ui.catalogList.innerHTML = `
-        <div class="empty">
-          No items yet 🥺<br/>
-          Add your first product above ✨
-        </div>`;
-      return;
-    }
-
-    ui.catalogList.innerHTML = state.items.map(it => {
-      return `
-        <div class="item">
-          <div class="itemLeft">
-            <div class="itemName">🛍️ ${escapeHtml(it.name)}</div>
-            <div class="itemMeta">
-              Price: <b>${fmtMoney(it.price)}</b> • Cost: <b>${fmtMoney(it.cost)}</b> • Margin: <b>${fmtMoney(it.price - it.cost)}</b>
-            </div>
-          </div>
-          <div class="rightActions">
-            <button class="miniBtn" title="Edit" data-act="edit" data-id="${it.id}">✏️</button>
-            <button class="miniBtn" title="Remove" data-act="remove" data-id="${it.id}">🗑️</button>
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  function renderSales(){
-    const q = state.search.toLowerCase().trim();
-
-    const visible = state.items.filter(it => {
-      if(!q) return true;
-      return it.name.toLowerCase().includes(q);
-    });
-
-    if(state.items.length === 0){
-      ui.salesList.innerHTML = `
-        <div class="empty">
-          Add items to your catalog first 🧺<br/>
-          Then you can track sales here 🧾
-        </div>`;
-      return;
-    }
-
-    if(visible.length === 0){
-      ui.salesList.innerHTML = `
-        <div class="empty">
-          No matches for “${escapeHtml(state.search)}” 🔎<br/>
-          Try another keyword ✨
-        </div>`;
-      return;
-    }
-
-    ui.salesList.innerHTML = visible.map(it => {
-      const qty = Number(state.sold[it.id] || 0);
-      const subSales = it.price * qty;
-      const subCost  = it.cost  * qty;
-      const subProfit= subSales - subCost;
-
-      return `
-        <div class="item">
-          <div class="itemLeft">
-            <div class="itemName">🍒 ${escapeHtml(it.name)}</div>
-            <div class="itemMeta">
-              Qty: <b>${qty}</b> • Sales: <b>${fmtMoney(subSales)}</b> • Profit: <b>${fmtMoney(subProfit)}</b>
-            </div>
-          </div>
-          <div class="qtyBox" aria-label="Quantity controls">
-            <button class="miniBtn minus" data-act="minus" data-id="${it.id}" title="Minus one">➖</button>
-            <div class="qty">${qty}</div>
-            <button class="miniBtn plus" data-act="plus" data-id="${it.id}" title="Plus one">➕</button>
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  function renderLists(){
-    renderCatalog();
-    renderSales();
-    wireListActions();
-  }
-
-  function render(){
-    ui.currency.value = state.currency;
-    ui.saleDate.value = state.saleDate || "";
-    renderLists();
-    renderTotals();
-  }
-
-  function wireListActions(){
-    ui.catalogList.querySelectorAll("button[data-act]").forEach(btn => {
-      btn.onclick = () => {
-        const act = btn.dataset.act;
-        const id  = btn.dataset.id;
-        if(act === "remove") removeItem(id);
-        if(act === "edit") editItem(id);
-      };
-    });
-
-    ui.salesList.querySelectorAll("button[data-act]").forEach(btn => {
-      btn.onclick = () => {
-        const act = btn.dataset.act;
-        const id  = btn.dataset.id;
-        if(act === "plus")  incQty(id);
-        if(act === "minus") decQty(id);
-      };
-    });
-  }
-
-  function escapeHtml(s){
-    return String(s)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  // Backup export/import (JSON)
-  function exportBackup(){
-    const data = {
-      exported_at: new Date().toISOString(),
-      version: 2,
-      items: state.items,
-      sold: state.sold,
-      currency: state.currency,
-      saleDate: state.saleDate
-    };
-    downloadFile("stall-tracker-backup.json", JSON.stringify(data, null, 2), "application/json");
-    showToast("Backup exported 📤");
-  }
-
-  async function importData(file){
-    try{
-      const text = await file.text();
-      const data = JSON.parse(text);
-      if(!data || typeof data !== "object") throw new Error("Invalid file");
-      if(!Array.isArray(data.items)) throw new Error("Missing items");
-      if(!data.sold || typeof data.sold !== "object") throw new Error("Missing sold");
-
-      const items = data.items
-        .filter(x => x && typeof x === "object" && typeof x.id === "string" && typeof x.name === "string")
-        .map(x => ({
-          id: x.id,
-          name: String(x.name).slice(0,60),
-          price: Math.max(0, Number(x.price) || 0),
-          cost:  Math.max(0, Number(x.cost)  || 0)
-        }));
-
-      const sold = {};
-      for(const it of items){
-        sold[it.id] = Math.max(0, Math.floor(Number(data.sold[it.id] || 0)));
-      }
-
-      state.items = items;
-      state.sold = sold;
-      state.currency = typeof data.currency === "string" ? data.currency : state.currency;
-      state.saleDate = typeof data.saleDate === "string" ? data.saleDate : state.saleDate;
-
-      save();
-      render();
-      showToast("Imported ✨");
-    }catch(err){
-      console.error(err);
-      alert("Import failed. Please use a valid backup JSON file.");
-    }
-  }
-
-  // CSV Export “For Sending to Liam”
-  function exportForLiamCSV(){
-    const date = (state.saleDate || "").trim();
-    if(!date){
-      alert("Please choose a date first (Date for export).");
-      ui.saleDate.focus();
-      return;
-    }
-
-    // only include items with qty > 0
-    const rows = [];
-    const header = ["Date","Item","Price","Cost","Qty","Sales","Total Cost","Profit"];
-    rows.push(header);
-
-    let tSales = 0, tCost = 0, tProfit = 0;
-
-    for(const it of state.items){
-      const qty = Number(state.sold[it.id] || 0);
-      if(qty <= 0) continue;
-
-      const sales = it.price * qty;
-      const cost  = it.cost  * qty;
-      const profit= sales - cost;
-
-      tSales += sales;
-      tCost  += cost;
-      tProfit+= profit;
-
-      rows.push([
-        date,
-        it.name,
-        it.price.toFixed(2),
-        it.cost.toFixed(2),
-        String(qty),
-        sales.toFixed(2),
-        cost.toFixed(2),
-        profit.toFixed(2),
-      ]);
-    }
-
-    if(rows.length === 1){
-      alert("No sales recorded yet (all quantities are 0).");
-      return;
-    }
-
-    rows.push(["","","","","TOTAL", tSales.toFixed(2), tCost.toFixed(2), tProfit.toFixed(2)]);
-
-    const csv = rows.map(r => r.map(csvCell).join(",")).join("\n");
-    const filename = `For Sending to Liam - ${date}.csv`;
-    downloadFile(filename, csv, "text/csv;charset=utf-8");
-
-    showToast("Exported sheet ✅");
-  }
-
-  function csvCell(v){
-    const s = String(v ?? "");
-    // Quote if contains comma, quote, newline
-    if(/[",\n]/.test(s)){
-      return `"${s.replaceAll('"','""')}"`;
-    }
+    // Basic hardening / defaults
+    if(!s.catalog) s.catalog = [];
+    if(!s.salesMeta) s.salesMeta = {date:"", notes:""};
+    if(!s.cash) s.cash = {expenses:[], meta:{date:"", notes:""}};
+    if(!s.cash.expenses) s.cash.expenses = [];
+    if(!s.ui) s.ui = {activeTab:"sales"};
     return s;
+  }catch(e){
+    return stateDefault();
+  }
+}
+let saveTimer = null;
+function saveState(){
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    statusText.textContent = "✨ Saved locally • " + new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  }, 60);
+}
+
+/* ---------- Calculations ---------- */
+function calcSalesTotals(){
+  let gross = 0;
+  let cost = 0;       // only owned COGS
+  let profit = 0;     // owned: (price - cost) * qty; consigned: markup*qty
+  let payable = 0;    // consigned original * qty (for reference)
+
+  for(const it of state.catalog){
+    const q = toNum(it.soldQty);
+    if(q <= 0) continue;
+
+    if(it.type === "consigned"){
+      const original = toNum(it.original);
+      const markup = toNum(it.markup);
+      const sell = original + markup;
+
+      gross += sell * q;         // cash-in is full selling price
+      profit += markup * q;      // your earnings
+      payable += original * q;   // amount to remit to consignor
+      // cost does NOT include consigned original in this model (since it isn't your COGS)
+    }else{
+      const c = toNum(it.cost);
+      const p = toNum(it.price);
+      gross += p * q;
+      cost  += c * q;
+      profit += (p - c) * q;
+    }
   }
 
-  function downloadFile(filename, content, mime){
-    const blob = new Blob([content], {type: mime});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+  return {gross, cost, profit, payable};
+}
+
+function calcCashFlow(){
+  const {gross} = calcSalesTotals();
+  const expenses = state.cash.expenses.reduce((sum, ex)=> sum + toNum(ex.amount), 0);
+
+  const netBefore = gross - expenses;
+
+  const taxableBase = Math.max(0, netBefore);
+  const taxes = taxableBase * 0.10;
+
+  const afterTax = netBefore - taxes;
+  const titheBase = Math.max(0, afterTax);
+  const tithe = titheBase * 0.10;
+
+  const ending = afterTax - tithe;
+
+  return {cashIn:gross, expenses, netBefore, taxes, tithe, ending};
+}
+
+/* ---------- Rendering ---------- */
+function render(){
+  // Tab state
+  setTab(state.ui.activeTab || "sales");
+
+  hydrateMeta();
+  refreshCatalogFormMode();
+
+  // Render catalog list with filters
+  const q = (searchBox.value || "").trim().toLowerCase();
+  let items = state.catalog.slice();
+
+  if(q){
+    items = items.filter(it => (it.name || "").toLowerCase().includes(q));
   }
 
-  // Wire top controls
-  ui.addItemBtn.onclick = addItem;
-  ui.clearInputsBtn.onclick = () => clearInputs(true);
+  const sorter = sortBox.value;
+  items.sort((a,b)=>{
+    const an = (a.name||"").toLowerCase();
+    const bn = (b.name||"").toLowerCase();
 
-  ui.itemName.addEventListener("keydown", (e) => { if(e.key === "Enter") addItem(); });
-  ui.itemPrice.addEventListener("keydown", (e) => { if(e.key === "Enter") addItem(); });
-  ui.itemCost.addEventListener("keydown", (e) => { if(e.key === "Enter") addItem(); });
-
-  ui.searchBox.addEventListener("input", () => {
-    state.search = ui.searchBox.value;
-    renderLists();
-    renderTotals();
+    if(sorter === "name") return an.localeCompare(bn);
+    if(sorter === "type") return (a.type||"").localeCompare(b.type||"") || an.localeCompare(bn);
+    if(sorter === "profit"){
+      const ap = profitPerUnit(a);
+      const bp = profitPerUnit(b);
+      return bp - ap || an.localeCompare(bn);
+    }
+    if(sorter === "sales"){
+      const as = sellPrice(a);
+      const bs = sellPrice(b);
+      return bs - as || an.localeCompare(bn);
+    }
+    return an.localeCompare(bn);
   });
 
-  ui.currency.addEventListener("change", () => {
-    state.currency = ui.currency.value;
-    save();
+  catalogList.innerHTML = "";
+  if(items.length === 0){
+    const div = document.createElement("div");
+    div.className = "hint";
+    div.textContent = "No items found. Add some to the catalog ✨";
+    catalogList.appendChild(div);
+  }else{
+    for(const it of items){
+      catalogList.appendChild(renderItem(it));
+    }
+  }
+
+  // Sales totals
+  const totals = calcSalesTotals();
+  k_gross.textContent   = fmtMoney(totals.gross);
+  k_cost.textContent    = fmtMoney(totals.cost);
+  k_profit.textContent  = fmtMoney(totals.profit);
+  k_payable.textContent = fmtMoney(totals.payable);
+  k_profit.classList.toggle("bad", totals.profit < 0);
+
+  // Cashflow totals
+  const cf = calcCashFlow();
+  cf_in.textContent = fmtMoney(cf.cashIn);
+  cf_exp.textContent = fmtMoney(cf.expenses);
+  cf_net.textContent = fmtMoney(cf.netBefore);
+  cf_tax.textContent = fmtMoney(cf.taxes);
+  cf_tithe.textContent = fmtMoney(cf.tithe);
+  cf_end.textContent = fmtMoney(cf.ending);
+  cf_end.classList.toggle("bad", cf.ending < 0);
+
+  // Expenses list
+  expenseList.innerHTML = "";
+  if(state.cash.expenses.length === 0){
+    const div = document.createElement("div");
+    div.className = "hint";
+    div.textContent = "No expenses yet. Add anything you spent while selling (fees, supplies, snacks, etc.) 🍡";
+    expenseList.appendChild(div);
+  }else{
+    state.cash.expenses.forEach(ex => {
+      expenseList.appendChild(renderExpense(ex));
+    });
+  }
+
+  saveState();
+}
+
+function profitPerUnit(it){
+  if(it.type === "consigned") return toNum(it.markup);
+  return toNum(it.price) - toNum(it.cost);
+}
+function sellPrice(it){
+  if(it.type === "consigned") return toNum(it.original) + toNum(it.markup);
+  return toNum(it.price);
+}
+
+function renderItem(it){
+  const wrap = document.createElement("div");
+  wrap.className = "item";
+
+  const top = document.createElement("div");
+  top.className = "itemTop";
+
+  const name = document.createElement("div");
+  name.className = "itemName";
+
+  const b = document.createElement("b");
+  b.textContent = it.name || "(Unnamed item)";
+  name.appendChild(b);
+
+  const chips = document.createElement("div");
+  chips.className = "chips";
+
+  const chipType = document.createElement("span");
+  chipType.className = "chip " + (it.type === "consigned" ? "consigned" : "owned");
+  chipType.textContent = it.type === "consigned" ? "🤝 Consigned" : "📦 Owned";
+  chips.appendChild(chipType);
+
+  const chipUnit = document.createElement("span");
+  chipUnit.className = "chip";
+  chipUnit.textContent = "💸 Sell: " + fmtMoney(sellPrice(it)).replace("₱","₱");
+  chips.appendChild(chipUnit);
+
+  const chipProfit = document.createElement("span");
+  chipProfit.className = "chip";
+  chipProfit.textContent = "✨ Profit/unit: " + fmtMoney(profitPerUnit(it)).replace("₱","₱");
+  chips.appendChild(chipProfit);
+
+  if(it.type === "consigned"){
+    const chipPay = document.createElement("span");
+    chipPay.className = "chip";
+    chipPay.textContent = "🧾 Orig: " + fmtMoney(toNum(it.original)).replace("₱","₱");
+    chips.appendChild(chipPay);
+  }else{
+    const chipCost = document.createElement("span");
+    chipCost.className = "chip";
+    chipCost.textContent = "🧾 Cost: " + fmtMoney(toNum(it.cost)).replace("₱","₱");
+    chips.appendChild(chipCost);
+  }
+
+  name.appendChild(chips);
+
+  const del = document.createElement("div");
+  del.className = "dangerLink";
+  del.textContent = "Delete";
+  del.title = "Delete this item from catalog";
+  del.addEventListener("click", ()=>{
+    if(confirm(`Delete "${it.name}" from the catalog?`)){
+      state.catalog = state.catalog.filter(x=>x.id!==it.id);
+      render();
+    }
+  });
+
+  top.appendChild(name);
+  top.appendChild(del);
+
+  const controls = document.createElement("div");
+  controls.className = "controls";
+
+  const btnMinus = document.createElement("button");
+  btnMinus.className = "iconBtn ghost";
+  btnMinus.textContent = "−";
+  btnMinus.addEventListener("click", ()=>{
+    it.soldQty = Math.max(0, toNum(it.soldQty) - 1);
     render();
   });
 
-  ui.saleDate.addEventListener("change", () => {
-    state.saleDate = ui.saleDate.value || "";
-    save();
+  const qty = document.createElement("input");
+  qty.className = "qty";
+  qty.inputMode = "numeric";
+  qty.value = String(toNum(it.soldQty));
+  qty.addEventListener("input", ()=>{
+    it.soldQty = Math.max(0, Math.floor(toNum(qty.value)));
+    saveState();
+    // lightweight update without full rerender flicker:
+    updateTotalsOnly();
+  });
+  qty.addEventListener("change", ()=>render());
+
+  const btnPlus = document.createElement("button");
+  btnPlus.className = "iconBtn ghost";
+  btnPlus.textContent = "+";
+  btnPlus.addEventListener("click", ()=>{
+    it.soldQty = Math.max(0, toNum(it.soldQty) + 1);
+    render();
   });
 
-  ui.exportLiamBtn.onclick = exportForLiamCSV;
+  const quick = document.createElement("span");
+  quick.className = "muted small";
+  quick.textContent = "Sold qty";
 
-  ui.resetSalesBtn.onclick = resetSales;
-  ui.wipeAllBtn.onclick = wipeAll;
+  const edit = document.createElement("button");
+  edit.className = "ghost";
+  edit.textContent = "✏️ Edit";
+  edit.addEventListener("click", ()=>openEditPrompt(it));
 
-  ui.exportBackupBtn.onclick = exportBackup;
-  ui.importBtn.onclick = () => ui.importFile.click();
-  ui.importFile.addEventListener("change", () => {
-    const f = ui.importFile.files?.[0];
-    if(f) importData(f);
-    ui.importFile.value = "";
-  });
+  controls.appendChild(quick);
+  controls.appendChild(btnMinus);
+  controls.appendChild(qty);
+  controls.appendChild(btnPlus);
+  controls.appendChild(edit);
 
-  // Init
-  load();
+  wrap.appendChild(top);
+  wrap.appendChild(controls);
 
-  // Set default date to today if not set
-  if(!state.saleDate){
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth()+1).padStart(2,"0");
-    const dd = String(d.getDate()).padStart(2,"0");
-    state.saleDate = `${yyyy}-${mm}-${dd}`;
-    save();
+  return wrap;
+}
+
+function openEditPrompt(it){
+  // Simple, mobile-friendly prompts (fast + reliable)
+  const newName = prompt("Item name:", it.name || "");
+  if(newName === null) return;
+  it.name = newName.trim() || it.name;
+
+  const newType = prompt('Type: enter "owned" or "consigned"', it.type || "owned");
+  if(newType !== null){
+    const t = (newType || "").toLowerCase().trim();
+    if(t === "owned" || t === "consigned") it.type = t;
   }
 
-  ui.currency.value = state.currency;
-  ui.saleDate.value = state.saleDate;
+  if(it.type === "consigned"){
+    const o = prompt("Original cost (₱):", String(toNum(it.original)));
+    if(o !== null) it.original = toNum(o);
+    const m = prompt("Markup (₱):", String(toNum(it.markup)));
+    if(m !== null) it.markup = toNum(m);
+    // keep fields tidy
+    delete it.cost; delete it.price;
+  }else{
+    const c = prompt("Cost (₱):", String(toNum(it.cost)));
+    if(c !== null) it.cost = toNum(c);
+    const p = prompt("Selling price (₱):", String(toNum(it.price)));
+    if(p !== null) it.price = toNum(p);
+    delete it.original; delete it.markup;
+  }
+  render();
+}
+
+function renderExpense(ex){
+  const wrap = document.createElement("div");
+  wrap.className = "item";
+
+  const top = document.createElement("div");
+  top.className = "itemTop";
+
+  const name = document.createElement("div");
+  name.className = "itemName";
+  const b = document.createElement("b");
+  b.textContent = ex.label || "(Expense)";
+  name.appendChild(b);
+
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  const chip = document.createElement("span");
+  chip.className = "chip";
+  chip.textContent = "🧾 " + fmtMoney(toNum(ex.amount));
+  chips.appendChild(chip);
+  name.appendChild(chips);
+
+  const del = document.createElement("div");
+  del.className = "dangerLink";
+  del.textContent = "Remove";
+  del.addEventListener("click", ()=>{
+    state.cash.expenses = state.cash.expenses.filter(x=>x.id!==ex.id);
+    render();
+  });
+
+  top.appendChild(name);
+  top.appendChild(del);
+
+  const controls = document.createElement("div");
+  controls.className = "controls";
+
+  const edit = document.createElement("button");
+  edit.className = "ghost";
+  edit.textContent = "✏️ Edit";
+  edit.addEventListener("click", ()=>{
+    const nl = prompt("Expense label:", ex.label || "");
+    if(nl !== null) ex.label = nl.trim();
+    const na = prompt("Amount (₱):", String(toNum(ex.amount)));
+    if(na !== null) ex.amount = toNum(na);
+    render();
+  });
+
+  controls.appendChild(edit);
+
+  wrap.appendChild(top);
+  wrap.appendChild(controls);
+  return wrap;
+}
+
+/* Totals-only update for smoother qty typing */
+function updateTotalsOnly(){
+  const totals = calcSalesTotals();
+  k_gross.textContent   = fmtMoney(totals.gross);
+  k_cost.textContent    = fmtMoney(totals.cost);
+  k_profit.textContent  = fmtMoney(totals.profit);
+  k_payable.textContent = fmtMoney(totals.payable);
+
+  const cf = calcCashFlow();
+  cf_in.textContent = fmtMoney(cf.cashIn);
+  cf_exp.textContent = fmtMoney(cf.expenses);
+  cf_net.textContent = fmtMoney(cf.netBefore);
+  cf_tax.textContent = fmtMoney(cf.taxes);
+  cf_tithe.textContent = fmtMoney(cf.tithe);
+  cf_end.textContent = fmtMoney(cf.ending);
+
+  saveState();
+}
+
+/* ---------- Actions: Add item ---------- */
+btnAddItem.addEventListener("click", ()=>{
+  const name = (c_name.value || "").trim();
+  if(!name){
+    alert("Please enter an item name ✨");
+    return;
+  }
+  const type = c_type.value;
+
+  if(type === "consigned"){
+    const original = toNum(c_orig.value);
+    const markup = toNum(c_markup.value);
+    if(original < 0 || markup < 0){
+      alert("Original and markup should be 0 or higher.");
+      return;
+    }
+    state.catalog.push({ id: uid(), name, type:"consigned", original, markup, soldQty: 0 });
+  }else{
+    const cost = toNum(c_cost.value);
+    const price = toNum(c_price.value);
+    if(cost < 0 || price < 0){
+      alert("Cost and price should be 0 or higher.");
+      return;
+    }
+    state.catalog.push({ id: uid(), name, type:"owned", cost, price, soldQty: 0 });
+  }
+
+  c_name.value = "";
+  c_cost.value = "";
+  c_price.value = "";
+  c_orig.value = "";
+  c_markup.value = "";
+  render();
+});
+
+/* ---------- Catalog import/export ---------- */
+btnExportCatalog.addEventListener("click", ()=>{
+  // Export catalog ONLY (no sold/expenses/meta)
+  const catalogClean = state.catalog.map(it=>{
+    const o = { id: it.id, name: it.name, type: it.type };
+    if(it.type === "consigned"){
+      o.original = toNum(it.original);
+      o.markup = toNum(it.markup);
+    }else{
+      o.cost = toNum(it.cost);
+      o.price = toNum(it.price);
+    }
+    return o;
+  });
+  const payload = { exportedAt: new Date().toISOString(), catalog: catalogClean };
+  downloadJson(payload, "field_catalog.json");
+});
+
+btnImportCatalog.addEventListener("click", ()=> catalogFile.click());
+
+catalogFile.addEventListener("change", async ()=>{
+  const f = catalogFile.files?.[0];
+  catalogFile.value = "";
+  if(!f) return;
+
+  try{
+    const txt = await f.text();
+    const obj = JSON.parse(txt);
+    const incoming = Array.isArray(obj) ? obj : obj.catalog;
+
+    if(!Array.isArray(incoming)){
+      alert("Invalid JSON. Expected { catalog: [...] } or an array.");
+      return;
+    }
+
+    // merge by id if present; else append new
+    const byId = new Map(state.catalog.map(x=>[x.id, x]));
+    for(const raw of incoming){
+      const clean = normalizeCatalogItem(raw);
+      if(!clean) continue;
+
+      if(clean.id && byId.has(clean.id)){
+        const existing = byId.get(clean.id);
+        // keep existing soldQty
+        const soldQty = toNum(existing.soldQty);
+        Object.assign(existing, clean);
+        existing.soldQty = soldQty;
+      }else{
+        clean.id = clean.id || uid();
+        clean.soldQty = 0;
+        state.catalog.push(clean);
+      }
+    }
+
+    render();
+    alert("Catalog imported ✨");
+  }catch(e){
+    alert("Import failed. Please check the JSON file.");
+  }
+});
+
+function normalizeCatalogItem(raw){
+  if(!raw || typeof raw !== "object") return null;
+  const type = (raw.type || "owned").toLowerCase().trim();
+  const name = String(raw.name || "").trim();
+  if(!name) return null;
+
+  const it = {
+    id: raw.id ? String(raw.id) : "",
+    name,
+    type: (type === "consigned" ? "consigned" : "owned")
+  };
+
+  if(it.type === "consigned"){
+    it.original = toNum(raw.original);
+    it.markup = toNum(raw.markup);
+  }else{
+    it.cost = toNum(raw.cost);
+    it.price = toNum(raw.price);
+  }
+  return it;
+}
+
+/* ---------- Clear sold counts ---------- */
+btnClearSold.addEventListener("click", ()=>{
+  if(!confirm("Clear ALL sold quantities back to 0?")) return;
+  state.catalog.forEach(it => it.soldQty = 0);
+  render();
+});
+
+/* ---------- Search / sort ---------- */
+searchBox.addEventListener("input", ()=>render());
+sortBox.addEventListener("change", ()=>render());
+
+/* ---------- Sales meta ---------- */
+salesDate.addEventListener("change", ()=>{
+  state.salesMeta.date = salesDate.value || "";
+  saveState();
+});
+salesNotes.addEventListener("input", ()=>{
+  state.salesMeta.notes = salesNotes.value || "";
+  saveState();
+});
+
+/* ---------- Cash meta ---------- */
+cashDate.addEventListener("change", ()=>{
+  state.cash.meta.date = cashDate.value || "";
+  saveState();
+});
+cashNotes.addEventListener("input", ()=>{
+  state.cash.meta.notes = cashNotes.value || "";
+  saveState();
+});
+
+/* ---------- Expenses ---------- */
+btnAddExpense.addEventListener("click", ()=>{
+  const label = (e_label.value || "").trim();
+  const amount = toNum(e_amount.value);
+  if(!label){
+    alert("Please enter an expense label ✨");
+    return;
+  }
+  if(amount <= 0){
+    alert("Please enter an amount greater than 0.");
+    return;
+  }
+  state.cash.expenses.push({ id: uid(), label, amount });
+  e_label.value = "";
+  e_amount.value = "";
+  render();
+});
+
+btnClearExpenses.addEventListener("click", ()=>{
+  if(!confirm("Clear ALL expenses?")) return;
+  state.cash.expenses = [];
+  render();
+});
+
+/* ---------- Exports: Sales CSV & JSON ---------- */
+btnExportSalesCsv.addEventListener("click", ()=>{
+  const rows = buildSalesRows();
+  const csv = toCsv(rows);
+  const name = `sales_sheet_${safeDate(state.salesMeta.date)}.csv`;
+  downloadText(csv, name, "text/csv");
+});
+
+btnExportSalesJson.addEventListener("click", ()=>{
+  const totals = calcSalesTotals();
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    salesMeta: {...state.salesMeta},
+    totals,
+    soldItems: buildSalesRows().slice(1).map(r=>({
+      item: r["Item"],
+      type: r["Type"],
+      qty: toNum(r["Qty"]),
+      sellPrice: toNum(r["SellPrice"]),
+      costOrOriginal: toNum(r["CostOrOriginal"]),
+      markup: toNum(r["Markup"]),
+      gross: toNum(r["GrossSales"]),
+      profit: toNum(r["Profit"]),
+      consignorPayable: toNum(r["ConsignorPayable"])
+    }))
+  };
+  downloadJson(payload, `sales_data_${safeDate(state.salesMeta.date)}.json`);
+});
+
+function buildSalesRows(){
+  const header = {
+    "Date": state.salesMeta.date || "",
+    "Notes": state.salesMeta.notes || "",
+    "Item": "Item",
+    "Type": "Type",
+    "Qty": "Qty",
+    "SellPrice": "SellPrice",
+    "CostOrOriginal": "CostOrOriginal",
+    "Markup": "Markup",
+    "GrossSales": "GrossSales",
+    "Profit": "Profit",
+    "ConsignorPayable": "ConsignorPayable"
+  };
+  const rows = [header];
+
+  // line items
+  const sold = state.catalog.filter(it => toNum(it.soldQty) > 0);
+  sold.sort((a,b)=> (a.name||"").localeCompare(b.name||""));
+
+  for(const it of sold){
+    const qty = Math.floor(toNum(it.soldQty));
+    if(qty <= 0) continue;
+
+    if(it.type === "consigned"){
+      const original = toNum(it.original);
+      const markup = toNum(it.markup);
+      const sell = original + markup;
+
+      rows.push({
+        "Date": state.salesMeta.date || "",
+        "Notes": state.salesMeta.notes || "",
+        "Item": it.name,
+        "Type": "Consigned",
+        "Qty": qty,
+        "SellPrice": sell,
+        "CostOrOriginal": original,
+        "Markup": markup,
+        "GrossSales": sell * qty,
+        "Profit": markup * qty,
+        "ConsignorPayable": original * qty
+      });
+    }else{
+      const cost = toNum(it.cost);
+      const price = toNum(it.price);
+      rows.push({
+        "Date": state.salesMeta.date || "",
+        "Notes": state.salesMeta.notes || "",
+        "Item": it.name,
+        "Type": "Owned",
+        "Qty": qty,
+        "SellPrice": price,
+        "CostOrOriginal": cost,
+        "Markup": (price - cost),
+        "GrossSales": price * qty,
+        "Profit": (price - cost) * qty,
+        "ConsignorPayable": 0
+      });
+    }
+  }
+
+  // totals footer row
+  const totals = calcSalesTotals();
+  rows.push({
+    "Date": state.salesMeta.date || "",
+    "Notes": "TOTALS",
+    "Item": "",
+    "Type": "",
+    "Qty": "",
+    "SellPrice": "",
+    "CostOrOriginal": "",
+    "Markup": "",
+    "GrossSales": totals.gross,
+    "Profit": totals.profit,
+    "ConsignorPayable": totals.payable
+  });
+
+  return rows;
+}
+
+/* ---------- Exports: Cash CSV & JSON ---------- */
+btnExportCashCsv.addEventListener("click", ()=>{
+  const rows = buildCashRows();
+  const csv = toCsv(rows);
+  const name = `cashflow_sheet_${safeDate(state.cash.meta.date)}.csv`;
+  downloadText(csv, name, "text/csv");
+});
+
+btnExportCashJson.addEventListener("click", ()=>{
+  const cf = calcCashFlow();
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    cashMeta: {...state.cash.meta},
+    cashInFromSales: cf.cashIn,
+    expenses: state.cash.expenses.map(x=>({label:x.label, amount:toNum(x.amount)})),
+    summary: cf
+  };
+  downloadJson(payload, `cashflow_data_${safeDate(state.cash.meta.date)}.json`);
+});
+
+function buildCashRows(){
+  const cf = calcCashFlow();
+  const rows = [];
+  rows.push({ "Date": state.cash.meta.date || "", "Notes": state.cash.meta.notes || "", "Type": "Cash In", "Label": "Gross Sales", "Amount": cf.cashIn });
+
+  if(state.cash.expenses.length){
+    for(const ex of state.cash.expenses){
+      rows.push({ "Date": state.cash.meta.date || "", "Notes": state.cash.meta.notes || "", "Type": "Expense", "Label": ex.label, "Amount": toNum(ex.amount) });
+    }
+  }else{
+    rows.push({ "Date": state.cash.meta.date || "", "Notes": state.cash.meta.notes || "", "Type": "Expense", "Label": "(none)", "Amount": 0 });
+  }
+
+  rows.push({ "Date": state.cash.meta.date || "", "Notes": "SUMMARY", "Type": "Net Before Taxes", "Label": "", "Amount": cf.netBefore });
+  rows.push({ "Date": state.cash.meta.date || "", "Notes": "SUMMARY", "Type": "Taxes (10%)", "Label": "", "Amount": cf.taxes });
+  rows.push({ "Date": state.cash.meta.date || "", "Notes": "SUMMARY", "Type": "Tithe (10%)", "Label": "", "Amount": cf.tithe });
+  rows.push({ "Date": state.cash.meta.date || "", "Notes": "SUMMARY", "Type": "Ending Balance", "Label": "", "Amount": cf.ending });
+
+  return rows;
+}
+
+/* ---------- Backup/Restore ALL ---------- */
+btnBackupAll.addEventListener("click", ()=>{
+  const payload = { exportedAt: new Date().toISOString(), state };
+  downloadJson(payload, `field_accounting_backup_${safeDate(new Date().toISOString().slice(0,10))}.json`);
+});
+
+btnRestoreAll.addEventListener("click", ()=> allFile.click());
+
+allFile.addEventListener("change", async ()=>{
+  const f = allFile.files?.[0];
+  allFile.value = "";
+  if(!f) return;
+  try{
+    const txt = await f.text();
+    const obj = JSON.parse(txt);
+    if(!obj || typeof obj !== "object" || !obj.state){
+      alert("Invalid backup. Expected { state: ... }");
+      return;
+    }
+    if(!confirm("Restore ALL data from this backup? This will overwrite current data on this device.")) return;
+    state = obj.state;
+    saveState();
+    render();
+    alert("Restored ✨");
+  }catch(e){
+    alert("Restore failed. Please check the JSON file.");
+  }
+});
+
+/* ---------- CSV helpers ---------- */
+function toCsv(rows){
+  if(!rows || !rows.length) return "";
+  const headers = Object.keys(rows[0]);
+  const esc = (v) => {
+    const s = (v === null || v === undefined) ? "" : String(v);
+    const needs = /[",\n]/.test(s);
+    const out = s.replace(/"/g,'""');
+    return needs ? `"${out}"` : out;
+  };
+  const lines = [];
+  lines.push(headers.map(esc).join(","));
+  for(const r of rows){
+    lines.push(headers.map(h=>esc(r[h])).join(","));
+  }
+  return lines.join("\n");
+}
+
+/* ---------- Download helpers ---------- */
+function downloadText(text, filename, mime){
+  const blob = new Blob([text], {type: mime || "text/plain"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 5000);
+}
+function downloadJson(obj, filename){
+  downloadText(JSON.stringify(obj, null, 2), filename, "application/json");
+}
+function safeDate(d){
+  const x = (d && String(d).trim()) ? String(d).trim() : new Date().toISOString().slice(0,10);
+  return x.replaceAll("/","-");
+}
+
+/* ---------- Init ---------- */
+(function init(){
+  // If no saved date, set today for convenience (but don't overwrite if user already set)
+  const today = new Date().toISOString().slice(0,10);
+  if(!state.salesMeta.date) state.salesMeta.date = today;
+  if(!state.cash.meta.date) state.cash.meta.date = today;
+
+  // Ensure each item has soldQty
+  state.catalog.forEach(it=>{
+    if(it.soldQty === undefined) it.soldQty = 0;
+    // normalize type fields
+    it.type = (it.type === "consigned") ? "consigned" : "owned";
+  });
 
   render();
 })();
