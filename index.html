@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🍓 Stall Sales Tracker</title>
+  <style>
+    :root{
+      --bg:#fff7fb;
+      --card:#ffffff;
+      --ink:#1f2330;
+      --muted:#6b7280;
+      --line:#f0d7e6;
+      --accent:#ff5da2;
+      --accent2:#8b5cf6;
+      --good:#16a34a;
+      --bad:#ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink);
+      background:
+        radial-gradient(800px 400px at 10% 0%, rgba(255,93,162,.18), transparent 60%),
+        radial-gradient(800px 400px at 90% 10%, rgba(139,92,246,.14), transparent 60%),
+        var(--bg);
+    }
+    header{
+      padding:22px 16px 10px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .titleRow{
+      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    h1{ margin:0; font-size: 22px; letter-spacing:.2px; }
+    .tagline{ margin:8px 0 0; color:var(--muted); font-size: 13px; }
+    main{
+      max-width:1100px;
+      margin: 0 auto;
+      padding: 12px 16px 30px;
+      display:grid;
+      gap:14px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 980px){
+      main{ grid-template-columns: 420px 1fr; align-items:start; }
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .card h2{ margin: 0 0 10px; font-size: 16px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; }
+    .field{
+      display:flex; flex-direction:column; gap:6px;
+      flex: 1 1 140px;
+      min-width: 140px;
+    }
+    label{ font-size: 12px; color: var(--muted); }
+    input, select{
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      outline:none;
+      font-size: 14px;
+      background:#fff;
+    }
+    input:focus, select:focus{ border-color: rgba(255,93,162,.6); box-shadow: 0 0 0 4px rgba(255,93,162,.12); }
+    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    button{
+      border:0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 700;
+      cursor:pointer;
+      transition: transform .04s ease, filter .15s ease;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    button:active{ transform: translateY(1px); }
+    .btnAccent{
+      background: linear-gradient(135deg, var(--accent), #ff83bc);
+      color:white;
+    }
+    .btnSoft{
+      background: #fff1f7;
+      color: #b4236c;
+      border: 1px solid rgba(255,93,162,.25);
+    }
+    .btnGhost{
+      background: #f7f2ff;
+      color: #5b21b6;
+      border: 1px solid rgba(139,92,246,.25);
+    }
+    .btnDanger{
+      background:#fff1f1;
+      color:#991b1b;
+      border:1px solid rgba(239,68,68,.25);
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px dashed rgba(255,93,162,.35);
+      background: rgba(255,93,162,.07);
+      color: #a31255;
+      font-size: 12px;
+      font-weight:700;
+    }
+    .totals{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top: 10px;
+    }
+    @media (min-width: 520px){
+      .totals{ grid-template-columns: repeat(3, 1fr); }
+    }
+    .kpi{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(255,93,162,.05), transparent 65%);
+    }
+    .kpi .kTitle{ font-size:12px; color:var(--muted); margin:0 0 6px; }
+    .kpi .kVal{ font-size:18px; margin:0; font-weight:900; letter-spacing:.2px;}
+    .kpi .kSub{ margin:6px 0 0; font-size:12px; color:var(--muted); }
+    .kpi.good .kVal{ color: var(--good); }
+    .kpi.bad .kVal{ color: var(--bad); }
+
+    .list{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+    .item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+    .itemLeft{
+      min-width: 0;
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .itemName{
+      font-weight: 900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .itemMeta{
+      font-size: 12px;
+      color: var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .qtyBox{
+      display:flex; align-items:center; gap:8px; flex-shrink:0;
+      background:#fff7fb;
+      border:1px solid rgba(255,93,162,.18);
+      padding: 6px 8px;
+      border-radius: 999px;
+    }
+    .miniBtn{
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display:grid;
+      place-items:center;
+      font-weight: 900;
+      padding:0;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.06);
+    }
+    .miniBtn.plus{ background: rgba(22,163,74,.12); color: #166534; border:1px solid rgba(22,163,74,.22);}
+    .miniBtn.minus{ background: rgba(239,68,68,.10); color: #7f1d1d; border:1px solid rgba(239,68,68,.20);}
+    .qty{ min-width: 30px; text-align:center; font-weight: 900; }
+    .rightActions{ display:flex; gap:8px; align-items:center; flex-shrink:0; }
+    .tiny{ font-size: 12px; color: var(--muted); }
+    .divider{
+      height:1px;
+      background: linear-gradient(90deg, transparent, rgba(255,93,162,.25), transparent);
+      margin: 12px 0;
+    }
+    .empty{
+      padding: 14px;
+      border: 1px dashed rgba(107,114,128,.35);
+      border-radius: 14px;
+      color: var(--muted);
+      background: rgba(255,255,255,.6);
+      text-align:center;
+      font-size: 13px;
+    }
+    .footerNote{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      display:flex; gap:8px; align-items:flex-start;
+    }
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(31,35,48,.92);
+      color:white;
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      display:none;
+      max-width: 92vw;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="titleRow">
+      <div>
+        <h1>🍓 Stall Sales Tracker</h1>
+        <p class="tagline">Catalog + sales tracker + instant profit. Works offline & saves automatically ✨</p>
+      </div>
+      <div class="pill">📌 Simple • 🧾 Exportable • 🔒 Local save</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT: Catalog -->
+    <section class="card" aria-label="Catalog">
+      <h2>🧺 Catalog (your items)</h2>
+      <div class="row">
+        <div class="field" style="flex: 1 1 100%">
+          <label for="itemName">Item name</label>
+          <input id="itemName" placeholder="e.g., Strawberry Jam 🍓" maxlength="60" />
+        </div>
+        <div class="field">
+          <label for="itemPrice">Selling price</label>
+          <input id="itemPrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g., 120" />
+        </div>
+        <div class="field">
+          <label for="itemCost">Cost (your expense)</label>
+          <input id="itemCost" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g., 70" />
+        </div>
+      </div>
+
+      <div class="btnRow">
+        <button class="btnAccent" id="addItemBtn">➕ Add to catalog</button>
+        <button class="btnSoft" id="clearInputsBtn">🧼 Clear</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row" style="align-items:center; justify-content:space-between">
+        <div class="tiny">📦 Items in catalog: <b id="catalogCount">0</b></div>
+        <div class="btnRow" style="margin:0">
+          <button class="btnGhost" id="exportBackupBtn" title="Export your data to a backup file">📤 Backup</button>
+          <button class="btnSoft" id="importBtn" title="Import data from a backup file">📥 Import</button>
+          <input id="importFile" type="file" accept="application/json" style="display:none" />
+        </div>
+      </div>
+
+      <div class="list" id="catalogList"></div>
+
+      <div class="footerNote">
+        <span>💡</span>
+        <div>Tip: Add emojis to item names for quick scanning (ex: “Milk Tea 🧋”). Everything saves in this browser.</div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Sales tracker -->
+    <section class="card" aria-label="Sales">
+      <div class="row" style="align-items:center; justify-content:space-between">
+        <h2 style="margin:0">🧾 Sales tracker</h2>
+        <div class="btnRow" style="margin:0">
+          <button class="btnSoft" id="resetSalesBtn">🔁 Reset quantities</button>
+          <button class="btnDanger" id="wipeAllBtn" title="Deletes catalog + sales from this device">🗑️ Wipe all</button>
+        </div>
+      </div>
+
+      <div class="row" style="align-items:flex-end; margin-top:10px;">
+        <div class="field" style="flex: 1 1 220px; min-width: 200px;">
+          <label for="saleDate">📅 Date (for export)</label>
+          <input id="saleDate" type="date" />
+        </div>
+        <div class="field" style="flex: 1 1 220px; min-width: 200px;">
+          <label for="currency">Currency symbol</label>
+          <select id="currency">
+            <option value="₱">₱ (PHP)</option>
+            <option value="$">$ (USD)</option>
+            <option value="€">€ (EUR)</option>
+            <option value="£">£ (GBP)</option>
+            <option value="¥">¥ (JPY)</option>
+            <option value="">(none)</option>
+          </select>
+        </div>
+        <div class="field" style="flex: 1 1 260px; min-width: 240px;">
+          <label>&nbsp;</label>
+          <button class="btnAccent" id="exportLiamBtn" title="Exports a CSV sheet for sending">📤 Export sheet — For Sending to Liam</button>
+        </div>
+      </div>
+
+      <div class="totals">
+        <div class="kpi">
+          <p class="kTitle">💰 Sales (revenue)</p>
+          <p class="kVal" id="totalSales">0.00</p>
+          <p class="kSub">Total selling price × qty</p>
+        </div>
+        <div class="kpi">
+          <p class="kTitle">🧴 Cost (expenses)</p>
+          <p class="kVal" id="totalCost">0.00</p>
+          <p class="kSub">Total cost × qty</p>
+        </div>
+        <div class="kpi good" id="profitKPI">
+          <p class="kTitle">✨ Profit</p>
+          <p class="kVal" id="totalProfit">0.00</p>
+          <p class="kSub">Sales − Cost</p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row" style="align-items:center">
+        <div class="field" style="flex: 1 1 280px">
+          <label for="searchBox">Search items</label>
+          <input id="searchBox" placeholder="Type to search... 🔎" />
+        </div>
+      </div>
+
+      <div class="list" id="salesList"></div>
+
+      <div class="footerNote">
+        <span>🧠</span>
+        <div><b>How it works:</b> Tap ➕ to record sales, tap ➖ to undo. Totals update instantly.</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const LS_KEY = "stall_selling_tracker_v2";
+
+  const $ = (id) => document.getElementById(id);
+
+  const ui = {
+    itemName: $("itemName"),
+    itemPrice: $("itemPrice"),
+    itemCost: $("itemCost"),
+    addItemBtn: $("addItemBtn"),
+    clearInputsBtn: $("clearInputsBtn"),
+    catalogList: $("catalogList"),
+    catalogCount: $("catalogCount"),
+
+    salesList: $("salesList"),
+    totalSales: $("totalSales"),
+    totalCost: $("totalCost"),
+    totalProfit: $("totalProfit"),
+    profitKPI: $("profitKPI"),
+
+    resetSalesBtn: $("resetSalesBtn"),
+    wipeAllBtn: $("wipeAllBtn"),
+
+    searchBox: $("searchBox"),
+    currency: $("currency"),
+
+    saleDate: $("saleDate"),
+    exportLiamBtn: $("exportLiamBtn"),
+
+    exportBackupBtn: $("exportBackupBtn"),
+    importBtn: $("importBtn"),
+    importFile: $("importFile"),
+
+    toast: $("toast"),
+  };
+
+  const state = {
+    items: [], // {id, name, price, cost}
+    sold: {},  // {id: qty}
+    currency: "₱",
+    search: "",
+    saleDate: "" // YYYY-MM-DD
+  };
+
+  const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+  function showToast(msg){
+    ui.toast.textContent = msg;
+    ui.toast.style.display = "block";
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => ui.toast.style.display = "none", 1800);
+  }
+
+  function fmtMoney(n){
+    const sym = state.currency ?? "";
+    const num = Number(n || 0);
+    return `${sym}${num.toFixed(2)}`;
+  }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      if(data && typeof data === "object"){
+        state.items = Array.isArray(data.items) ? data.items : [];
+        state.sold = (data.sold && typeof data.sold === "object") ? data.sold : {};
+        state.currency = typeof data.currency === "string" ? data.currency : "₱";
+        state.saleDate = typeof data.saleDate === "string" ? data.saleDate : "";
+      }
+    }catch(e){
+      console.warn("Load failed", e);
+    }
+  }
+
+  function save(){
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      items: state.items,
+      sold: state.sold,
+      currency: state.currency,
+      saleDate: state.saleDate
+    }));
+  }
+
+  function sanitizeMoneyInput(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, n) : 0;
+  }
+
+  function addItem(){
+    const name = ui.itemName.value.trim();
+    const price = sanitizeMoneyInput(ui.itemPrice.value);
+    const cost  = sanitizeMoneyInput(ui.itemCost.value);
+
+    if(!name){
+      showToast("Please type an item name 💖");
+      ui.itemName.focus();
+      return;
+    }
+    if(price <= 0){
+      showToast("Selling price must be > 0 💸");
+      ui.itemPrice.focus();
+      return;
+    }
+    if(cost > price){
+      showToast("Cost is higher than price 😳 (still saved)");
+    }
+
+    const item = { id: uid(), name, price, cost };
+    state.items.unshift(item);
+    if(state.sold[item.id] == null) state.sold[item.id] = 0;
+
+    save();
+    render();
+    clearInputs(true);
+    showToast("Added to catalog ✨");
+  }
+
+  function clearInputs(keepNameFocus=false){
+    ui.itemName.value = "";
+    ui.itemPrice.value = "";
+    ui.itemCost.value = "";
+    if(keepNameFocus) ui.itemName.focus();
+  }
+
+  function removeItem(id){
+    const item = state.items.find(x => x.id === id);
+    if(!item) return;
+    if(!confirm(`Remove "${item.name}" from catalog? This also clears its quantities.`)) return;
+    state.items = state.items.filter(x => x.id !== id);
+    delete state.sold[id];
+    save();
+    render();
+    showToast("Removed 🧺");
+  }
+
+  function editItem(id){
+    const item = state.items.find(x => x.id === id);
+    if(!item) return;
+
+    const newName = prompt("Edit item name ✏️", item.name);
+    if(newName === null) return;
+    const name = newName.trim();
+    if(!name){ showToast("Name can't be empty 🥲"); return; }
+
+    const newPrice = prompt("Edit selling price 💸", String(item.price));
+    if(newPrice === null) return;
+    const price = sanitizeMoneyInput(newPrice);
+    if(price <= 0){ showToast("Price must be > 0 😅"); return; }
+
+    const newCost = prompt("Edit cost 🧴", String(item.cost));
+    if(newCost === null) return;
+    const cost = sanitizeMoneyInput(newCost);
+
+    item.name = name;
+    item.price = price;
+    item.cost = cost;
+
+    save();
+    render();
+    showToast("Updated ✨");
+  }
+
+  function setQty(id, qty){
+    const q = Math.max(0, Math.floor(qty));
+    state.sold[id] = q;
+    save();
+    renderTotals();
+    renderLists();
+  }
+  function incQty(id){ setQty(id, (state.sold[id] || 0) + 1); }
+  function decQty(id){ setQty(id, (state.sold[id] || 0) - 1); }
+
+  function resetSales(){
+    if(!confirm("Reset all quantities sold to 0? 🔁")) return;
+    for(const it of state.items){
+      state.sold[it.id] = 0;
+    }
+    save();
+    render();
+    showToast("Quantities reset ✨");
+  }
+
+  function wipeAll(){
+    if(!confirm("This will delete your catalog + sales from this device. Proceed? 🗑️")) return;
+    localStorage.removeItem(LS_KEY);
+    state.items = [];
+    state.sold = {};
+    state.currency = "₱";
+    state.search = "";
+    state.saleDate = "";
+    ui.searchBox.value = "";
+    ui.currency.value = "₱";
+    ui.saleDate.value = "";
+    render();
+    showToast("All cleared 🧼");
+  }
+
+  function computeTotals(){
+    let sales = 0, cost = 0;
+    for(const it of state.items){
+      const qty = Number(state.sold[it.id] || 0);
+      sales += it.price * qty;
+      cost  += it.cost  * qty;
+    }
+    const profit = sales - cost;
+    return { sales, cost, profit };
+  }
+
+  function renderTotals(){
+    const { sales, cost, profit } = computeTotals();
+    ui.totalSales.textContent = fmtMoney(sales);
+    ui.totalCost.textContent  = fmtMoney(cost);
+    ui.totalProfit.textContent= fmtMoney(profit);
+
+    ui.profitKPI.classList.remove("good","bad");
+    ui.profitKPI.classList.add(profit >= 0 ? "good" : "bad");
+  }
+
+  function renderCatalog(){
+    ui.catalogCount.textContent = String(state.items.length);
+
+    if(state.items.length === 0){
+      ui.catalogList.innerHTML = `
+        <div class="empty">
+          No items yet 🥺<br/>
+          Add your first product above ✨
+        </div>`;
+      return;
+    }
+
+    ui.catalogList.innerHTML = state.items.map(it => {
+      return `
+        <div class="item">
+          <div class="itemLeft">
+            <div class="itemName">🛍️ ${escapeHtml(it.name)}</div>
+            <div class="itemMeta">
+              Price: <b>${fmtMoney(it.price)}</b> • Cost: <b>${fmtMoney(it.cost)}</b> • Margin: <b>${fmtMoney(it.price - it.cost)}</b>
+            </div>
+          </div>
+          <div class="rightActions">
+            <button class="miniBtn" title="Edit" data-act="edit" data-id="${it.id}">✏️</button>
+            <button class="miniBtn" title="Remove" data-act="remove" data-id="${it.id}">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderSales(){
+    const q = state.search.toLowerCase().trim();
+
+    const visible = state.items.filter(it => {
+      if(!q) return true;
+      return it.name.toLowerCase().includes(q);
+    });
+
+    if(state.items.length === 0){
+      ui.salesList.innerHTML = `
+        <div class="empty">
+          Add items to your catalog first 🧺<br/>
+          Then you can track sales here 🧾
+        </div>`;
+      return;
+    }
+
+    if(visible.length === 0){
+      ui.salesList.innerHTML = `
+        <div class="empty">
+          No matches for “${escapeHtml(state.search)}” 🔎<br/>
+          Try another keyword ✨
+        </div>`;
+      return;
+    }
+
+    ui.salesList.innerHTML = visible.map(it => {
+      const qty = Number(state.sold[it.id] || 0);
+      const subSales = it.price * qty;
+      const subCost  = it.cost  * qty;
+      const subProfit= subSales - subCost;
+
+      return `
+        <div class="item">
+          <div class="itemLeft">
+            <div class="itemName">🍒 ${escapeHtml(it.name)}</div>
+            <div class="itemMeta">
+              Qty: <b>${qty}</b> • Sales: <b>${fmtMoney(subSales)}</b> • Profit: <b>${fmtMoney(subProfit)}</b>
+            </div>
+          </div>
+          <div class="qtyBox" aria-label="Quantity controls">
+            <button class="miniBtn minus" data-act="minus" data-id="${it.id}" title="Minus one">➖</button>
+            <div class="qty">${qty}</div>
+            <button class="miniBtn plus" data-act="plus" data-id="${it.id}" title="Plus one">➕</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderLists(){
+    renderCatalog();
+    renderSales();
+    wireListActions();
+  }
+
+  function render(){
+    ui.currency.value = state.currency;
+    ui.saleDate.value = state.saleDate || "";
+    renderLists();
+    renderTotals();
+  }
+
+  function wireListActions(){
+    ui.catalogList.querySelectorAll("button[data-act]").forEach(btn => {
+      btn.onclick = () => {
+        const act = btn.dataset.act;
+        const id  = btn.dataset.id;
+        if(act === "remove") removeItem(id);
+        if(act === "edit") editItem(id);
+      };
+    });
+
+    ui.salesList.querySelectorAll("button[data-act]").forEach(btn => {
+      btn.onclick = () => {
+        const act = btn.dataset.act;
+        const id  = btn.dataset.id;
+        if(act === "plus")  incQty(id);
+        if(act === "minus") decQty(id);
+      };
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // Backup export/import (JSON)
+  function exportBackup(){
+    const data = {
+      exported_at: new Date().toISOString(),
+      version: 2,
+      items: state.items,
+      sold: state.sold,
+      currency: state.currency,
+      saleDate: state.saleDate
+    };
+    downloadFile("stall-tracker-backup.json", JSON.stringify(data, null, 2), "application/json");
+    showToast("Backup exported 📤");
+  }
+
+  async function importData(file){
+    try{
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if(!data || typeof data !== "object") throw new Error("Invalid file");
+      if(!Array.isArray(data.items)) throw new Error("Missing items");
+      if(!data.sold || typeof data.sold !== "object") throw new Error("Missing sold");
+
+      const items = data.items
+        .filter(x => x && typeof x === "object" && typeof x.id === "string" && typeof x.name === "string")
+        .map(x => ({
+          id: x.id,
+          name: String(x.name).slice(0,60),
+          price: Math.max(0, Number(x.price) || 0),
+          cost:  Math.max(0, Number(x.cost)  || 0)
+        }));
+
+      const sold = {};
+      for(const it of items){
+        sold[it.id] = Math.max(0, Math.floor(Number(data.sold[it.id] || 0)));
+      }
+
+      state.items = items;
+      state.sold = sold;
+      state.currency = typeof data.currency === "string" ? data.currency : state.currency;
+      state.saleDate = typeof data.saleDate === "string" ? data.saleDate : state.saleDate;
+
+      save();
+      render();
+      showToast("Imported ✨");
+    }catch(err){
+      console.error(err);
+      alert("Import failed. Please use a valid backup JSON file.");
+    }
+  }
+
+  // CSV Export “For Sending to Liam”
+  function exportForLiamCSV(){
+    const date = (state.saleDate || "").trim();
+    if(!date){
+      alert("Please choose a date first (Date for export).");
+      ui.saleDate.focus();
+      return;
+    }
+
+    // only include items with qty > 0
+    const rows = [];
+    const header = ["Date","Item","Price","Cost","Qty","Sales","Total Cost","Profit"];
+    rows.push(header);
+
+    let tSales = 0, tCost = 0, tProfit = 0;
+
+    for(const it of state.items){
+      const qty = Number(state.sold[it.id] || 0);
+      if(qty <= 0) continue;
+
+      const sales = it.price * qty;
+      const cost  = it.cost  * qty;
+      const profit= sales - cost;
+
+      tSales += sales;
+      tCost  += cost;
+      tProfit+= profit;
+
+      rows.push([
+        date,
+        it.name,
+        it.price.toFixed(2),
+        it.cost.toFixed(2),
+        String(qty),
+        sales.toFixed(2),
+        cost.toFixed(2),
+        profit.toFixed(2),
+      ]);
+    }
+
+    if(rows.length === 1){
+      alert("No sales recorded yet (all quantities are 0).");
+      return;
+    }
+
+    rows.push(["","","","","TOTAL", tSales.toFixed(2), tCost.toFixed(2), tProfit.toFixed(2)]);
+
+    const csv = rows.map(r => r.map(csvCell).join(",")).join("\n");
+    const filename = `For Sending to Liam - ${date}.csv`;
+    downloadFile(filename, csv, "text/csv;charset=utf-8");
+
+    showToast("Exported sheet ✅");
+  }
+
+  function csvCell(v){
+    const s = String(v ?? "");
+    // Quote if contains comma, quote, newline
+    if(/[",\n]/.test(s)){
+      return `"${s.replaceAll('"','""')}"`;
+    }
+    return s;
+  }
+
+  function downloadFile(filename, content, mime){
+    const blob = new Blob([content], {type: mime});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // Wire top controls
+  ui.addItemBtn.onclick = addItem;
+  ui.clearInputsBtn.onclick = () => clearInputs(true);
+
+  ui.itemName.addEventListener("keydown", (e) => { if(e.key === "Enter") addItem(); });
+  ui.itemPrice.addEventListener("keydown", (e) => { if(e.key === "Enter") addItem(); });
+  ui.itemCost.addEventListener("keydown", (e) => { if(e.key === "Enter") addItem(); });
+
+  ui.searchBox.addEventListener("input", () => {
+    state.search = ui.searchBox.value;
+    renderLists();
+    renderTotals();
+  });
+
+  ui.currency.addEventListener("change", () => {
+    state.currency = ui.currency.value;
+    save();
+    render();
+  });
+
+  ui.saleDate.addEventListener("change", () => {
+    state.saleDate = ui.saleDate.value || "";
+    save();
+  });
+
+  ui.exportLiamBtn.onclick = exportForLiamCSV;
+
+  ui.resetSalesBtn.onclick = resetSales;
+  ui.wipeAllBtn.onclick = wipeAll;
+
+  ui.exportBackupBtn.onclick = exportBackup;
+  ui.importBtn.onclick = () => ui.importFile.click();
+  ui.importFile.addEventListener("change", () => {
+    const f = ui.importFile.files?.[0];
+    if(f) importData(f);
+    ui.importFile.value = "";
+  });
+
+  // Init
+  load();
+
+  // Set default date to today if not set
+  if(!state.saleDate){
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    state.saleDate = `${yyyy}-${mm}-${dd}`;
+    save();
+  }
+
+  ui.currency.value = state.currency;
+  ui.saleDate.value = state.saleDate;
+
+  render();
+})();
+</script>
+</body>
+</html>
